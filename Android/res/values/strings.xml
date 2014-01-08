@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="app_name">MydB</string>
+    <string name="action_settings">Settings</string>
+    <string name="hello_world">Hello world!</string>
+    <string name="str_rec">Rec</string>
+    <string name="txt_update">Update Rate</string>
+    <string name="s_min">Min</string>
+    <string name="s_hr">Hr</string>
+    <string name="s_day">Day</string>
+
+</resources>

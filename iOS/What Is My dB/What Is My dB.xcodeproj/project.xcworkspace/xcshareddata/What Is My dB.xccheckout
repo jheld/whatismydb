@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>IDESourceControlProjectFavoriteDictionaryKey</key>
+	<false/>
+	<key>IDESourceControlProjectIdentifier</key>
+	<string>DC1F67F6-32FA-4A1B-BC92-B140E328C0D2</string>
+	<key>IDESourceControlProjectName</key>
+	<string>What Is My dB</string>
+	<key>IDESourceControlProjectOriginsDictionary</key>
+	<dict>
+		<key>E00BE590-D622-4DF7-9ECE-ABED0EBAFFC0</key>
+		<string>https://github.com/aemarse/whatismydb.git</string>
+	</dict>
+	<key>IDESourceControlProjectPath</key>
+	<string>iOS/What Is My dB/What Is My dB.xcodeproj/project.xcworkspace</string>
+	<key>IDESourceControlProjectRelativeInstallPathDictionary</key>
+	<dict>
+		<key>E00BE590-D622-4DF7-9ECE-ABED0EBAFFC0</key>
+		<string>../../../..</string>
+	</dict>
+	<key>IDESourceControlProjectURL</key>
+	<string>https://github.com/aemarse/whatismydb.git</string>
+	<key>IDESourceControlProjectVersion</key>
+	<integer>110</integer>
+	<key>IDESourceControlProjectWCCIdentifier</key>
+	<string>E00BE590-D622-4DF7-9ECE-ABED0EBAFFC0</string>
+	<key>IDESourceControlProjectWCConfigurations</key>
+	<array>
+		<dict>
+			<key>IDESourceControlRepositoryExtensionIdentifierKey</key>
+			<string>public.vcs.git</string>
+			<key>IDESourceControlWCCIdentifierKey</key>
+			<string>E00BE590-D622-4DF7-9ECE-ABED0EBAFFC0</string>
+			<key>IDESourceControlWCCName</key>
+			<string>whatismydb</string>
+		</dict>
+	</array>
+</dict>
+</plist>
