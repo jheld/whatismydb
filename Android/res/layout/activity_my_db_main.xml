@@ -8,14 +8,26 @@
     android:paddingTop="@dimen/activity_vertical_margin"
     tools:context=".MyDbMain" >
 
-    <Switch
-        android:id="@+id/sw_rec"
+    <TextView
+        android:id="@+id/txt_rec"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignParentTop="true"
         android:layout_centerHorizontal="true"
-        android:layout_marginTop="60dp"
-        android:text="@string/str_rec" />
+        android:layout_marginTop="15dp"
+        android:text="@string/txt_rec"
+        android:textAppearance="?android:attr/textAppearanceLarge" />
+    
+    <Switch
+        android:id="@+id/sw_rec"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerHorizontal="true"
+        android:layout_below="@+id/txt_rec"
+        android:layout_marginTop="10dp"
+        android:switchPadding="18sp"
+        android:text="@string/str_rec"
+        android:onClick="onClickRec" />
 
     <ProgressBar
         android:id="@+id/pb_db"
@@ -33,8 +45,8 @@
         android:layout_centerHorizontal="true"
         android:layout_centerVertical="true"
         android:layout_below="@+id/pb_db"
-        android:layout_marginTop="10dp"
-        android:text="@string/txt_update"
+        android:layout_marginTop="15dp"
+        android:text="@string/txt_updateRate"
         android:textAppearance="?android:attr/textAppearanceLarge" />
 
     <Switch
@@ -45,7 +57,8 @@
         android:layout_centerHorizontal="true"
         android:layout_marginTop="10dp"
         android:switchPadding="19sp"
-        android:text="@string/s_min" />
+        android:text="@string/str_min"
+        android:onClick="onClickUpdate" />
 
     <Switch
         android:id="@+id/sw_hr"
@@ -54,7 +67,9 @@
         android:layout_alignLeft="@+id/sw_day"
         android:layout_below="@+id/sw_min"
         android:switchPadding="30sp"
-        android:text="@string/s_hr" />
+        android:layout_marginTop="5dp"
+        android:text="@string/str_hr"
+        android:onClick="onClickUpdate" />
 
     <Switch
         android:id="@+id/sw_day"
@@ -63,6 +78,28 @@
         android:layout_alignLeft="@+id/sw_min"
         android:layout_below="@+id/sw_hr"
         android:switchPadding="19sp"
-        android:text="@string/s_day" />
+        android:layout_marginTop="5dp"
+        android:text="@string/str_day"
+        android:onClick="onClickUpdate" />
+
+    <TextView
+        android:id="@+id/tv_updateDb"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/sw_day"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="15dp"
+        android:text="@string/txt_updateDb"
+        android:textAppearance="?android:attr/textAppearanceLarge" />
+
+    <Switch
+        android:id="@+id/sw_updateDb"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignLeft="@+id/sw_rec"
+        android:layout_below="@+id/tv_updateDb"
+        android:layout_marginTop="10dp"
+        android:switchPadding="24sp"
+        android:text="@string/str_updateDb" />
 
 </RelativeLayout>

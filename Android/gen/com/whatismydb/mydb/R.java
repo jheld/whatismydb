@@ -24,13 +24,16 @@ public final class R {
         public static final int ic_launcher=0x7f020000;
     }
     public static final class id {
-        public static final int action_settings=0x7f080006;
-        public static final int pb_db=0x7f080001;
-        public static final int sw_day=0x7f080005;
-        public static final int sw_hr=0x7f080004;
-        public static final int sw_min=0x7f080003;
-        public static final int sw_rec=0x7f080000;
-        public static final int tv_update=0x7f080002;
+        public static final int action_settings=0x7f080009;
+        public static final int pb_db=0x7f080002;
+        public static final int sw_day=0x7f080006;
+        public static final int sw_hr=0x7f080005;
+        public static final int sw_min=0x7f080004;
+        public static final int sw_rec=0x7f080001;
+        public static final int sw_updateDb=0x7f080008;
+        public static final int tv_update=0x7f080003;
+        public static final int tv_updateDb=0x7f080007;
+        public static final int txt_rec=0x7f080000;
     }
     public static final class layout {
         public static final int activity_my_db_main=0x7f030000;
@@ -42,11 +45,14 @@ public final class R {
         public static final int action_settings=0x7f050001;
         public static final int app_name=0x7f050000;
         public static final int hello_world=0x7f050002;
-        public static final int s_day=0x7f050007;
-        public static final int s_hr=0x7f050006;
-        public static final int s_min=0x7f050005;
+        public static final int str_day=0x7f050007;
+        public static final int str_hr=0x7f050006;
+        public static final int str_min=0x7f050005;
         public static final int str_rec=0x7f050003;
-        public static final int txt_update=0x7f050004;
+        public static final int str_updateDb=0x7f05000a;
+        public static final int txt_rec=0x7f050008;
+        public static final int txt_updateDb=0x7f050009;
+        public static final int txt_updateRate=0x7f050004;
     }
     public static final class style {
         /** 

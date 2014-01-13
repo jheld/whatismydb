@@ -5,9 +5,12 @@
     <string name="action_settings">Settings</string>
     <string name="hello_world">Hello world!</string>
     <string name="str_rec">Rec</string>
-    <string name="txt_update">Update Rate</string>
-    <string name="s_min">Min</string>
-    <string name="s_hr">Hr</string>
-    <string name="s_day">Day</string>
+    <string name="txt_updateRate">2. Select Update Rate</string>
+    <string name="str_min">Min</string>
+    <string name="str_hr">Hr</string>
+    <string name="str_day">Day</string>
+    <string name="txt_rec">1. Start Recording</string>
+    <string name="txt_updateDb">3. Update Database</string>
+    <string name="str_updateDb">Db</string>
 
 </resources>
