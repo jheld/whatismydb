@@ -14,7 +14,7 @@
         android:layout_height="wrap_content"
         android:layout_alignParentTop="true"
         android:layout_centerHorizontal="true"
-        android:layout_marginTop="15dp"
+        android:layout_marginTop="25dp"
         android:text="@string/txt_rec"
         android:textAppearance="?android:attr/textAppearanceLarge" />
     
@@ -29,22 +29,13 @@
         android:text="@string/str_rec"
         android:onClick="onClickRec" />
 
-    <ProgressBar
-        android:id="@+id/pb_db"
-        style="?android:attr/progressBarStyleLarge"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_below="@+id/sw_rec"
-        android:layout_marginTop="10dp"
-        android:layout_centerHorizontal="true" />
-
     <TextView
         android:id="@+id/tv_update"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_centerHorizontal="true"
         android:layout_centerVertical="true"
-        android:layout_below="@+id/pb_db"
+        android:layout_below="@+id/tv_decibels"
         android:layout_marginTop="15dp"
         android:text="@string/txt_updateRate"
         android:textAppearance="?android:attr/textAppearanceLarge" />
@@ -101,5 +92,14 @@
         android:layout_marginTop="10dp"
         android:switchPadding="24sp"
         android:text="@string/str_updateDb" />
+
+    <TextView
+        android:id="@+id/tv_decibels"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/sw_rec"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="10dp"
+        android:text="" />
 
 </RelativeLayout>

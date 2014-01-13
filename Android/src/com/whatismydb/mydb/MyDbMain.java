@@ -1,17 +1,19 @@
 package com.whatismydb.mydb;
 
+import java.text.NumberFormat;
+
+import android.app.Activity;
 import android.media.AudioFormat;
 import android.media.AudioRecord;
 import android.media.MediaRecorder;
 import android.os.AsyncTask;
 import android.os.Bundle;
-import android.app.Activity;
 import android.util.Log;
 import android.view.Menu;
 import android.view.View;
-import android.widget.CompoundButton;
 import android.widget.ProgressBar;
 import android.widget.Switch;
+import android.widget.TextView;
 
 public class MyDbMain extends Activity {
 
@@ -21,7 +23,7 @@ public class MyDbMain extends Activity {
 	Switch sw_hr;
 	Switch sw_day;
 	Switch sw_db;
-	ProgressBar pb_dB;
+	TextView tv_dB;
 	
 	// Constants for AudioRecord
 	private static final int SAMPLE_RATE = 8000;
@@ -46,7 +48,7 @@ public class MyDbMain extends Activity {
         sw_hr = (Switch) findViewById(R.id.sw_hr);
         sw_day = (Switch) findViewById(R.id.sw_day);
         sw_db = (Switch) findViewById(R.id.sw_updateDb);
-        pb_dB = (ProgressBar) findViewById(R.id.pb_db);
+        tv_dB = (TextView) findViewById(R.id.tv_decibels);
         
         // Automatically set the "min" switch to "on" for now
         sw_min.setChecked(true);
@@ -79,34 +81,38 @@ public class MyDbMain extends Activity {
         	
         	Log.e("onClickRec", "recorder created");
         	
-        	// Start recording + start timer
-        	recorder.startRecording();
+        	// START RecordAudioTask HERE
+        	new RecordAudioTask().execute();
         	
-        	// Get the recording state from the recorder
-        	recording = true;
-        	
-        	// Grab chunk of audio when timer reaches selected interval(s)
-        	short sndChunk[] = new short[bufSize];
-        	double rms = 0;
-        	
-        	while(recording) {
-        		recorder.read(sndChunk, 0, bufSize);
-        		
-        		// Calculate the RMS of the audio chunk
-        		rms = calculateRMS(sndChunk);
-        		
-        		// Log the RMS
-        		Log.e("rms:", Double.toString(rms));
-        		
-        	}
+//        	// Start recording + start timer
+//        	recorder.startRecording();
+//        	
+//        	// Get the recording state from the recorder
+//        	recording = true;
+//        	
+//        	// Grab chunk of audio when timer reaches selected interval(s)
+//        	short sndChunk[] = new short[bufSize];
+//        	double rms = 0;
+//        	
+//        	while(recording) {
+//        		recorder.read(sndChunk, 0, bufSize);
+//        		
+//        		// Calculate the RMS of the audio chunk
+//        		rms = calculateRMS(sndChunk);
+//        		
+//        		// Log the RMS
+//        		Log.e("rms:", Double.toString(rms));
+//        		
+//        	}
         	
         } else { // If off
         	
         	Log.e("onClickRec", "switch state unchecked");
         	
+        	recording = false;
+        	
         	// Stop recording
         	recorder.stop();
-        	recording = false;
         	
         	// Stop timer
         	
@@ -148,6 +154,71 @@ public class MyDbMain extends Activity {
     	
     	return rms;
     	
+    }
+    
+    public double calculateDb(double rms) {
+		
+    	double db = 0;
+//    	double ref = .00002;
+    	double ref = 32767.0;
+
+    	db = 20 * Math.log10(rms/ref);
+//    	db = 20 * Math.log10(rms/ref) - 70;
+    	
+    	return db;
+    	
+    }
+    
+    // CLASSES
+    private class RecordAudioTask extends AsyncTask<Void, Double, Void> {
+
+		@Override
+		protected Void doInBackground(Void... arg0) {
+			
+			// Start recording + start timer
+        	recorder.startRecording();
+        	
+        	// Get the recording state from the recorder
+        	recording = true;
+        	
+        	// Grab chunk of audio when timer reaches selected interval(s)
+        	short sndChunk[] = new short[bufSize];
+        	double rms = 0;
+        	double db = 0;
+        	
+        	while(recording) {
+        		recorder.read(sndChunk, 0, bufSize);
+        		
+        		// Calculate the RMS of the audio chunk
+        		rms = calculateRMS(sndChunk);
+        		
+        		// Calculate dB
+        		db = calculateDb(rms);
+        		
+        		// Update the UI with the rms value
+        		publishProgress(db);
+        		
+        		// Log the RMS
+//        		Log.e("rms:", Double.toString(rms));
+        		
+        	}
+			
+			return null;
+		}
+    	
+		protected void onProgressUpdate(Double... db) {
+			
+			double db_val = db[0].doubleValue();
+			String output = String.format("%.2f dB", db_val);
+			tv_dB.setText(output);
+			
+//			tv_dB.setText(Double.toString(rms_val));
+			
+	     }
+		
+		protected void onPostExecute() {
+		      
+		}
     }
     
     @Override

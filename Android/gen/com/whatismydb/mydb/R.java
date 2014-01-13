@@ -25,13 +25,13 @@ public final class R {
     }
     public static final class id {
         public static final int action_settings=0x7f080009;
-        public static final int pb_db=0x7f080002;
         public static final int sw_day=0x7f080006;
         public static final int sw_hr=0x7f080005;
         public static final int sw_min=0x7f080004;
         public static final int sw_rec=0x7f080001;
         public static final int sw_updateDb=0x7f080008;
-        public static final int tv_update=0x7f080003;
+        public static final int tv_decibels=0x7f080003;
+        public static final int tv_update=0x7f080002;
         public static final int tv_updateDb=0x7f080007;
         public static final int txt_rec=0x7f080000;
     }
