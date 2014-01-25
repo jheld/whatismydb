@@ -1,6 +1,5 @@
 package com.whatismydb.mydb;
 
-import java.io.InputStream;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -91,55 +90,24 @@ public class MyDbMain extends Activity {
     	// Get the state of the switch
         boolean on = ((Switch) v).isChecked();
         
-        Log.e("onClickRec", "switch state checked");
-        
-        // If on
+        // If switch is on
         if (on) {
-        	
-        	Log.e("onClickRec", "switch on");
         	
         	// Create AudioRecord object
         	recorder = new AudioRecord(MediaRecorder.AudioSource.MIC,
         			SAMPLE_RATE, NUM_CHANNELS, ENCODING_FORMAT,
         			bufSize*bytesPerElement);
         	
-        	Log.e("onClickRec", "recorder created");
-        	
-        	// START RecordAudioTask HERE
+        	// Start RecordAudioTask
         	new RecordAudioTask().execute();
         	
-//        	// Start recording + start timer
-//        	recorder.startRecording();
-//        	
-//        	// Get the recording state from the recorder
-//        	recording = true;
-//        	
-//        	// Grab chunk of audio when timer reaches selected interval(s)
-//        	short sndChunk[] = new short[bufSize];
-//        	double rms = 0;
-//        	
-//        	while(recording) {
-//        		recorder.read(sndChunk, 0, bufSize);
-//        		
-//        		// Calculate the RMS of the audio chunk
-//        		rms = calculateRMS(sndChunk);
-//        		
-//        		// Log the RMS
-//        		Log.e("rms:", Double.toString(rms));
-//        		
-//        	}
+        } else { // If switch is off
         	
-        } else { // If off
-        	
-        	Log.e("onClickRec", "switch state unchecked");
-        	
+        	// Set recording boolean to false
         	recording = false;
         	
         	// Stop recording
         	recorder.stop();
-        	
-        	// Stop timer
-        	
         	
         	// Free memory, if necessary
         	recorder.release();
@@ -157,9 +125,10 @@ public class MyDbMain extends Activity {
     	// Get the state of the switch
         boolean on = ((Switch) v).isChecked();
         
-        // If on
+        // If switch is on
         if (on) {
         	
+        	// Figure out which switch was changed
         	switch(v.getId()){
         		
         	case R.id.sw_min:
@@ -176,11 +145,17 @@ public class MyDbMain extends Activity {
         	
         	}
         	
-        	sw_db.setEnabled(true);
+        	// Enable the update database switch
+        	if (sw_db.isEnabled() == false) {
+        		sw_db.setEnabled(true);
+        	}
         	
-        } else {
+        } else { // If switch is off
+
+        	// Uncheck and disable the update database switch
         	sw_db.setChecked(false);
         	sw_db.setEnabled(false);
+        	
         }
         
     }
@@ -229,10 +204,12 @@ public class MyDbMain extends Activity {
     	double rms = 0;
     	double sum = 0;
     	
+    	// Sum the values in the buffer
     	for(int i = 0; i < sndChunk.length; i++) {
     		sum += Math.pow(sndChunk[i], 2);
     	}
     	
+    	// Get the mean and take the square root to get rms
     	rms = (double) Math.sqrt(sum/sndChunk.length);
     	
     	return rms;
@@ -243,11 +220,10 @@ public class MyDbMain extends Activity {
     public double calculateDb(double rms) {
 		
     	double db = 0;
-//    	double ref = .00002;
-    	double ref = 32767.0;
+    	double ref = 32767.0; // reference value used for dB calculation
 
+    	// dB calculation
     	db = 20 * Math.log10(rms/ref);
-//    	db = 20 * Math.log10(rms/ref) - 70;
     	
     	return db;
     	
@@ -256,8 +232,10 @@ public class MyDbMain extends Activity {
     // Create a JSON Object from the supplied data
     public JSONObject dataToJson(String timestamp, String value) {
 		
+    	// Make a new JSON objects
     	JSONObject obj = new JSONObject();
     	
+    	// Put the data in it
     	try {
     		obj.put("timestamp", timestamp);
     		obj.put("value", value);
@@ -270,9 +248,6 @@ public class MyDbMain extends Activity {
     
     // Posts data to the database
     public void postToDb(JSONObject jsonObject) {
-		
-    	InputStream inputStream = null;
-    	String result = "";
     	
     	try {
     		
@@ -297,22 +272,13 @@ public class MyDbMain extends Activity {
     		// Execute the post
     		HttpResponse response = client.execute((HttpUriRequest)poster);
     		
+    		// Get entity from the response
     		HttpEntity entityHttp = response.getEntity();
     		
+    		// Check on the entity (should be JSON string data)
     		if (entity != null) {
-                Log.e("hello", EntityUtils.toString(entityHttp));
+                Log.e("result: ", EntityUtils.toString(entityHttp));
             }
-    		
-//    		inputStream = response.getEntity().getContent();
-
-    		// Handle the result
-//    		if (inputStream!=null) {
-//    			result = inputStream.toString();
-//    		} else {
-//    			result = "Did not work!";
-//    		}
-    	        
-    		Log.e("post result: ", result);
     		
     	} catch(Exception e) {
     		Log.e("post error: ", "Unable to post to database");
@@ -339,6 +305,8 @@ public class MyDbMain extends Activity {
         	double db = 0;
         	
         	while(recording) {
+        		
+        		// Read a chunk of audio data
         		recorder.read(sndChunk, 0, bufSize);
         		
         		// Calculate the RMS of the audio chunk
@@ -350,9 +318,6 @@ public class MyDbMain extends Activity {
         		// Update the UI with the rms value
         		publishProgress(db);
         		
-        		// Log the RMS
-//        		Log.e("rms:", Double.toString(rms));
-        		
         	}
 			
 			return null;
@@ -360,16 +325,15 @@ public class MyDbMain extends Activity {
     	
 		protected void onProgressUpdate(Double... db) {
 			
+			// Get the dB value and set it to the text field
 			double db_val = db[0].doubleValue();
 			String output = String.format("%.2f dB", db_val);
 			tv_dB.setText(output);
 			
-//			tv_dB.setText(Double.toString(rms_val));
-			
 	     }
 		
 		protected void onPostExecute() {
-		      
+			
 		}
     }
     
