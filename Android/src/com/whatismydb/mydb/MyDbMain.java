@@ -1,6 +1,20 @@
 package com.whatismydb.mydb;
 
-import java.text.NumberFormat;
+import java.io.InputStream;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
+
+import org.apache.http.HttpEntity;
+import org.apache.http.HttpResponse;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.client.methods.HttpUriRequest;
+import org.apache.http.entity.StringEntity;
+import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.util.EntityUtils;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import android.app.Activity;
 import android.media.AudioFormat;
@@ -11,7 +25,6 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.Menu;
 import android.view.View;
-import android.widget.ProgressBar;
 import android.widget.Switch;
 import android.widget.TextView;
 
@@ -32,10 +45,21 @@ public class MyDbMain extends Activity {
 	
 	// Pointer to AudioRecord object
 	private AudioRecord recorder = null;
-	private Thread recThread = null;
 	
 	// Record state
 	private boolean recording;
+	
+	// Update rate
+	private int updateRate;
+	private static final int UPDATE_MINUTE = 1;
+	private static final int UPDATE_HOUR = 60;
+	private static final int UPDATE_DAY = 1440;
+	
+	// Create an empty scheduler
+    ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
+    
+    // URL for posting data
+    String postUrl = "http://192.168.15.228:8080/whatismydb/poster/";
 	
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -50,8 +74,8 @@ public class MyDbMain extends Activity {
         sw_db = (Switch) findViewById(R.id.sw_updateDb);
         tv_dB = (TextView) findViewById(R.id.tv_decibels);
         
-        // Automatically set the "min" switch to "on" for now
-        sw_min.setChecked(true);
+        // Disable the updatedb switch for now
+        sw_db.setEnabled(false);
         
     }
 
@@ -121,6 +145,8 @@ public class MyDbMain extends Activity {
         	recorder.release();
         	recorder = null;
         	
+        	// Set other switches to false
+        	
         }
     	
     }
@@ -130,17 +156,74 @@ public class MyDbMain extends Activity {
     	
     	// Get the state of the switch
         boolean on = ((Switch) v).isChecked();
-    	
+        
         // If on
         if (on) {
         	
+        	switch(v.getId()){
+        		
+        	case R.id.sw_min:
+        		updateRate = UPDATE_MINUTE;
+        		break;
+        	case R.id.sw_hr:
+        		updateRate = UPDATE_HOUR;
+        		break;
+        	case R.id.sw_day:
+        		updateRate = UPDATE_DAY;
+        		break;
+        	default:
+        		break;
+        	
+        	}
+        	
+        	sw_db.setEnabled(true);
+        	
         } else {
+        	sw_db.setChecked(false);
+        	sw_db.setEnabled(false);
+        }
+        
+    }
+    
+    // Update switch
+    public void onClickUpdateDb(View v) {
+    	
+    	// Get the state of the switch
+        boolean on = ((Switch) v).isChecked();
+        
+        // If on
+        if (on) {
+        	
+        	// Schedule a regularly occurring task at the currently specified update_rate
+        	scheduler.scheduleAtFixedRate (new Runnable() {
+        		public void run() {
+        			Long tsLong = System.currentTimeMillis()/1000;
+        			String ts = tsLong.toString();
+        			String value = (String) tv_dB.getText();
+        			String theLog = ts + ": " + value;
+        			Log.e("scheduler: ", theLog);
+        			
+        			// Make a JSON objects w/ the data
+        			JSONObject json = dataToJson(ts, value);
+        			
+        			// POST to the database
+        			postToDb(json);
+        			
+        		}
+        	}, 0, updateRate, TimeUnit.MINUTES);
+        	
+        } else {
+        	
+        	// Shut down all the scheduled tasks
+        	scheduler.shutdownNow();
         	
         }
         
     }
     
     // HELPER FUNCTIONS
+
+    // Gets the RMS
     public double calculateRMS(short[] sndChunk) {
 		
     	double rms = 0;
@@ -156,6 +239,7 @@ public class MyDbMain extends Activity {
     	
     }
     
+    // Gets dB from RMS
     public double calculateDb(double rms) {
 		
     	double db = 0;
@@ -168,6 +252,74 @@ public class MyDbMain extends Activity {
     	return db;
     	
     }
+    
+    // Create a JSON Object from the supplied data
+    public JSONObject dataToJson(String timestamp, String value) {
+		
+    	JSONObject obj = new JSONObject();
+    	
+    	try {
+    		obj.put("timestamp", timestamp);
+    		obj.put("value", value);
+    	} catch (JSONException e) {
+    		e.printStackTrace();
+    	}
+    	
+    	return obj;
+    }
+    
+    // Posts data to the database
+    public void postToDb(JSONObject jsonObject) {
+		
+    	InputStream inputStream = null;
+    	String result = "";
+    	
+    	try {
+    		
+    		// Create a default HTTP client
+    		HttpClient client = new DefaultHttpClient();
+    		
+    		// Create HTTP post object
+    		HttpPost poster = new HttpPost(postUrl);
+    		
+    		// Get a string from the JSON Object
+    		String jsonString = jsonObject.toString();
+    		Log.e("json string: ", jsonString);
+    		
+    		// Set the HTTP entity
+    		StringEntity entity = new StringEntity(jsonString);
+    		poster.setEntity(entity);
+    		
+    		// Set the header
+    		poster.setHeader("Accept", "application/json");
+            poster.setHeader("Content-type","application/json");
+    		
+    		// Execute the post
+    		HttpResponse response = client.execute((HttpUriRequest)poster);
+    		
+    		HttpEntity entityHttp = response.getEntity();
+    		
+    		if (entity != null) {
+                Log.e("hello", EntityUtils.toString(entityHttp));
+            }
+    		
+//    		inputStream = response.getEntity().getContent();
+
+    		// Handle the result
+//    		if (inputStream!=null) {
+//    			result = inputStream.toString();
+//    		} else {
+//    			result = "Did not work!";
+//    		}
+    	        
+    		Log.e("post result: ", result);
+    		
+    	} catch(Exception e) {
+    		Log.e("post error: ", "Unable to post to database");
+    		e.printStackTrace();
+    	}
+    	
+	}
     
     // CLASSES
     private class RecordAudioTask extends AsyncTask<Void, Double, Void> {

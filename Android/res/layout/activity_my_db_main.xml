@@ -90,7 +90,8 @@
         android:layout_alignLeft="@+id/sw_rec"
         android:layout_below="@+id/tv_updateDb"
         android:layout_marginTop="10dp"
-        android:switchPadding="24sp"
+        android:switchPadding="25sp"
+        android:onClick="onClickUpdateDb"
         android:text="@string/str_updateDb" />
 
     <TextView
