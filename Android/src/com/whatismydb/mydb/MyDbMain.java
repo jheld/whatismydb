@@ -59,6 +59,10 @@ public class MyDbMain extends Activity {
     
     // URL for posting data
     String postUrl = "http://192.168.15.228:8080/whatismydb/poster/";
+    
+    // Holder for the dB and dbTable value
+    double db_val;
+    String dbTable;
 	
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -128,17 +132,20 @@ public class MyDbMain extends Activity {
         // If switch is on
         if (on) {
         	
-        	// Figure out which switch was changed
+        	// Figure out which switch was turned on
         	switch(v.getId()){
         		
         	case R.id.sw_min:
         		updateRate = UPDATE_MINUTE;
+        		dbTable = "minute";
         		break;
         	case R.id.sw_hr:
         		updateRate = UPDATE_HOUR;
+        		dbTable = "hour";
         		break;
         	case R.id.sw_day:
         		updateRate = UPDATE_DAY;
+        		dbTable = "day";
         		break;
         	default:
         		break;
@@ -172,14 +179,18 @@ public class MyDbMain extends Activity {
         	// Schedule a regularly occurring task at the currently specified update_rate
         	scheduler.scheduleAtFixedRate (new Runnable() {
         		public void run() {
+        			
+        			// Get the timestamp and dB data
         			Long tsLong = System.currentTimeMillis()/1000;
         			String ts = tsLong.toString();
-        			String value = (String) tv_dB.getText();
+        			String value = String.format("%.2f", db_val);
+        			
+        			// Log the data
         			String theLog = ts + ": " + value;
         			Log.e("scheduler: ", theLog);
         			
         			// Make a JSON objects w/ the data
-        			JSONObject json = dataToJson(ts, value);
+        			JSONObject json = dataToJson(ts, value, dbTable);
         			
         			// POST to the database
         			postToDb(json);
@@ -230,7 +241,7 @@ public class MyDbMain extends Activity {
     }
     
     // Create a JSON Object from the supplied data
-    public JSONObject dataToJson(String timestamp, String value) {
+    public JSONObject dataToJson(String timestamp, String value, String dbTable) {
 		
     	// Make a new JSON objects
     	JSONObject obj = new JSONObject();
@@ -239,6 +250,7 @@ public class MyDbMain extends Activity {
     	try {
     		obj.put("timestamp", timestamp);
     		obj.put("value", value);
+    		obj.put("dbTable", dbTable);
     	} catch (JSONException e) {
     		e.printStackTrace();
     	}
@@ -326,7 +338,7 @@ public class MyDbMain extends Activity {
 		protected void onProgressUpdate(Double... db) {
 			
 			// Get the dB value and set it to the text field
-			double db_val = db[0].doubleValue();
+			db_val = db[0].doubleValue();
 			String output = String.format("%.2f dB", db_val);
 			tv_dB.setText(output);
 			
