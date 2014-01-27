@@ -29,7 +29,7 @@ import android.widget.TextView;
 
 public class MyDbMain extends Activity {
 
-	// Pointers to UI elements
+	// UI elements
 	Switch sw_rec;
 	Switch sw_min;
 	Switch sw_hr;
@@ -42,28 +42,35 @@ public class MyDbMain extends Activity {
 	private static final int NUM_CHANNELS = AudioFormat.CHANNEL_IN_MONO;
 	private static final int ENCODING_FORMAT = AudioFormat.ENCODING_PCM_16BIT;
 	
-	// Pointer to AudioRecord object
+	// AudioRecord object
 	private AudioRecord recorder = null;
 	
-	// Record state
+	// Recording state boolean
 	private boolean recording;
 	
-	// Update rate
-	private int updateRate;
+	// Switch state booleans
+	private boolean swMinOn;
+	private boolean swHrOn;
+	private boolean swDayOn;
+	
+	// Update rate variables (in terms of minutes)
 	private static final int UPDATE_MINUTE = 1;
 	private static final int UPDATE_HOUR = 60;
 	private static final int UPDATE_DAY = 1440;
-	
-	// Create an empty scheduler
-    ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
-    
-    // URL for posting data
-    String postUrl = "http://192.168.15.228:8080/whatismydb/poster/";
     
     // Holder for the dB and dbTable value
     double db_val;
     String dbTable;
+    
+    // Database table variables
+ 	private static final String MINUTE_TABLE = "minute";
+ 	private static final String HOUR_TABLE = "hour";
+ 	private static final String DAY_TABLE = "day";
+ 	
+ 	// POST URL
+    String postUrl = "http://192.168.15.228:8080/whatismydb/poster/";
 	
+    // onCreate method
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -77,7 +84,10 @@ public class MyDbMain extends Activity {
         sw_db = (Switch) findViewById(R.id.sw_updateDb);
         tv_dB = (TextView) findViewById(R.id.tv_decibels);
         
-        // Disable the updatedb switch for now
+        // Disable some of the switches
+        sw_min.setEnabled(false);
+        sw_hr.setEnabled(false);
+        sw_day.setEnabled(false);
         sw_db.setEnabled(false);
         
     }
@@ -88,13 +98,13 @@ public class MyDbMain extends Activity {
     
     // ON-CLICK LISTENER METHODS
     
-    // Record switch
+    // Record switch handler
     public void onClickRec(View v) {
     	
     	// Get the state of the switch
         boolean on = ((Switch) v).isChecked();
         
-        // If switch is on
+        // If record switch is on
         if (on) {
         	
         	// Create AudioRecord object
@@ -105,7 +115,12 @@ public class MyDbMain extends Activity {
         	// Start RecordAudioTask
         	new RecordAudioTask().execute();
         	
-        } else { // If switch is off
+        	// Enable the update rate switches
+        	sw_min.setEnabled(true);
+            sw_hr.setEnabled(true);
+            sw_day.setEnabled(true);
+        	
+        } else { // If record switch is off
         	
         	// Set recording boolean to false
         	recording = false;
@@ -117,101 +132,199 @@ public class MyDbMain extends Activity {
         	recorder.release();
         	recorder = null;
         	
-        	// Set other switches to false
+        	// Uncheck and disable the update rate switches
+        	sw_min.setChecked(false);
+            sw_hr.setChecked(false);
+            sw_day.setChecked(false);
+        	sw_min.setEnabled(false);
+            sw_hr.setEnabled(false);
+            sw_day.setEnabled(false);
         	
         }
     	
     }
     
-    // Update switch
+    // Update Rate switch handler
     public void onClickUpdate(View v) {
     	
-    	// Get the state of the switch
+    	// Get the state of the switch that was changed
         boolean on = ((Switch) v).isChecked();
         
-        // If switch is on
+        // If the switch is turned on
         if (on) {
         	
         	// Figure out which switch was turned on
         	switch(v.getId()){
-        		
+        	
+        	// Set the switch state boolean to true
         	case R.id.sw_min:
-        		updateRate = UPDATE_MINUTE;
-        		dbTable = "minute";
-        		break;
+        		swMinOn = true;
         	case R.id.sw_hr:
-        		updateRate = UPDATE_HOUR;
-        		dbTable = "hour";
+        		swHrOn = true;
         		break;
         	case R.id.sw_day:
-        		updateRate = UPDATE_DAY;
-        		dbTable = "day";
+        		swDayOn = true;
         		break;
         	default:
         		break;
         	
         	}
         	
-        	// Enable the update database switch
-        	if (sw_db.isEnabled() == false) {
-        		sw_db.setEnabled(true);
-        	}
-        	
-        } else { // If switch is off
+        } else { // If the switch is turned off
 
-        	// Uncheck and disable the update database switch
-        	sw_db.setChecked(false);
-        	sw_db.setEnabled(false);
+        	// Figure out which switch was turned off
+        	switch(v.getId()){
+        	
+        	// Set the switch state boolean to false
+        	case R.id.sw_min:
+        		swMinOn = false;
+        		break;
+        	case R.id.sw_hr:
+        		swHrOn = false;
+        		break;
+        	case R.id.sw_day:
+        		swDayOn = false;
+        		break;
+        	default:
+        		break;
+        	
+        	}
         	
         }
         
+        // If any of the switches are checked
+    	if (swMinOn || swHrOn || swDayOn) {
+    	
+    		// Enable the update database switch
+    		if (sw_db.isEnabled() == false) {
+    			sw_db.setEnabled(true);
+    		}
+    	
+    	}
+    	
+    	// If all of the switches are off
+    	if (!swMinOn && !swHrOn && !swDayOn) {
+    	
+    		// Uncheck and disable the update database switch
+    		sw_db.setChecked(false);
+    		sw_db.setEnabled(false);
+    	
+    	}
+        
     }
     
-    // Update switch
+    // Update Database switch handler
     public void onClickUpdateDb(View v) {
     	
     	// Get the state of the switch
         boolean on = ((Switch) v).isChecked();
         
+        // Initialize schedulers
+        ScheduledExecutorService min_scheduler = Executors.newSingleThreadScheduledExecutor();
+        ScheduledExecutorService hr_scheduler = Executors.newSingleThreadScheduledExecutor();
+        ScheduledExecutorService day_scheduler = Executors.newSingleThreadScheduledExecutor();
+        
         // If on
         if (on) {
         	
-        	// Schedule a regularly occurring task at the currently specified update_rate
-        	scheduler.scheduleAtFixedRate (new Runnable() {
-        		public void run() {
-        			
-        			// Get the timestamp and dB data
-        			Long tsLong = System.currentTimeMillis()/1000;
-        			String ts = tsLong.toString();
-        			String value = String.format("%.2f", db_val);
-        			
-        			// Log the data
-        			String theLog = ts + ": " + value;
-        			Log.e("scheduler: ", theLog);
-        			
-        			// Make a JSON objects w/ the data
-        			JSONObject json = dataToJson(ts, value, dbTable);
-        			
-        			// POST to the database
-        			postToDb(json);
-        			
-        		}
-        	}, 0, updateRate, TimeUnit.MINUTES);
+        	// If Minute is checked
+        	if (sw_min.isChecked()) {
+        		
+        		// Schedule a regularly occurring task for each minute
+            	min_scheduler.scheduleAtFixedRate (new Runnable() {
+            		public void run() {
+            			
+            			// Get the timestamp and dB data
+            			Long tsLong = System.currentTimeMillis()/1000;
+            			String ts = tsLong.toString();
+            			String value = String.format("%.2f", db_val);
+            			
+            			// Log the data
+            			String theLog = ts + ": " + value;
+            			Log.e("min scheduler: ", theLog);
+            			
+            			// Make a JSON objects w/ the data
+            			JSONObject json = dataToJson(ts, value, MINUTE_TABLE);
+            			
+            			// POST to the database
+            			postToDb(json);
+            			
+            		}
+            	}, 0, UPDATE_MINUTE, TimeUnit.MINUTES);
+        		
+        	}
+        	
+        	// If Hour is checked
+        	if (sw_hr.isChecked()) {
+        		
+        		// Schedule a regularly occurring task for each hour
+            	hr_scheduler.scheduleAtFixedRate (new Runnable() {
+            		public void run() {
+            			
+            			// Get the timestamp and dB data
+            			Long tsLong = System.currentTimeMillis()/1000;
+            			String ts = tsLong.toString();
+            			String value = String.format("%.2f", db_val);
+            			
+            			// Log the data
+            			String theLog = ts + ": " + value;
+            			Log.e("hr scheduler: ", theLog);
+            			
+            			// Make a JSON objects w/ the data
+            			JSONObject json = dataToJson(ts, value, HOUR_TABLE);
+            			
+            			// POST to the database
+            			postToDb(json);
+            			
+            		}
+            	}, 0, UPDATE_HOUR, TimeUnit.MINUTES);
+        		
+        	}
+        	
+        	// If Day is checked
+        	if (sw_day.isChecked()) {
+        		
+        		// Schedule a regularly occurring task for each day
+            	day_scheduler.scheduleAtFixedRate (new Runnable() {
+            		public void run() {
+            			
+            			// Get the timestamp and dB data
+            			Long tsLong = System.currentTimeMillis()/1000;
+            			String ts = tsLong.toString();
+            			String value = String.format("%.2f", db_val);
+            			
+            			// Log the data
+            			String theLog = ts + ": " + value;
+            			Log.e("min scheduler: ", theLog);
+            			
+            			// Make a JSON objects w/ the data
+            			JSONObject json = dataToJson(ts, value, DAY_TABLE);
+            			
+            			// POST to the database
+            			postToDb(json);
+            			
+            		}
+            	}, 0, UPDATE_DAY, TimeUnit.MINUTES);
+        		
+        	}
         	
         } else {
         	
-        	// Shut down all the scheduled tasks
-        	scheduler.shutdownNow();
+        	// Shut down all the schedulers
+        	min_scheduler.shutdownNow();
+        	hr_scheduler.shutdownNow();
+        	day_scheduler.shutdownNow();
         	
         }
         
     }
     
     // HELPER FUNCTIONS
-
+    
     // Gets the RMS
     public double calculateRMS(short[] sndChunk) {
 		
+    	// Init some vars
     	double rms = 0;
     	double sum = 0;
     	
@@ -230,6 +343,7 @@ public class MyDbMain extends Activity {
     // Gets dB from RMS
     public double calculateDb(double rms) {
 		
+    	// Init some vars
     	double db = 0;
     	double ref = 32767.0; // reference value used for dB calculation
 
@@ -287,7 +401,7 @@ public class MyDbMain extends Activity {
     		// Get entity from the response
     		HttpEntity entityHttp = response.getEntity();
     		
-    		// Check on the entity (should be JSON string data)
+    		// Log the response (should be JSON string data)
     		if (entity != null) {
                 Log.e("result: ", EntityUtils.toString(entityHttp));
             }
@@ -316,6 +430,7 @@ public class MyDbMain extends Activity {
         	double rms = 0;
         	double db = 0;
         	
+        	// While record switch is on
         	while(recording) {
         		
         		// Read a chunk of audio data
