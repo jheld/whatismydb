@@ -54,6 +54,7 @@ public class MyDbMain extends Activity {
 	private boolean swDayOn;
 	
 	// Update rate variables (in terms of minutes)
+	private static final int UPDATE_SECOND = 1/60;
 	private static final int UPDATE_MINUTE = 1;
 	private static final int UPDATE_HOUR = 60;
 	private static final int UPDATE_DAY = 1440;
@@ -63,12 +64,13 @@ public class MyDbMain extends Activity {
     String dbTable;
     
     // Database table variables
- 	private static final String MINUTE_TABLE = "minute";
+	private static final String SECOND_TABLE = "second";
+	private static final String MINUTE_TABLE = "minute";
  	private static final String HOUR_TABLE = "hour";
  	private static final String DAY_TABLE = "day";
  	
  	// POST URL
-    String postUrl = "http://192.168.15.228:8080/whatismydb/poster/";
+    String postUrl = "http://192.168.1.89:8000";//"http://192.168.15.228:8080/whatismydb/poster/";
 	
     // onCreate method
     @Override
@@ -85,10 +87,10 @@ public class MyDbMain extends Activity {
         tv_dB = (TextView) findViewById(R.id.tv_decibels);
         
         // Disable some of the switches
-        sw_min.setEnabled(false);
+        sw_min.setEnabled(true);
         sw_hr.setEnabled(false);
         sw_day.setEnabled(false);
-        sw_db.setEnabled(false);
+        sw_db.setEnabled(true);
         
     }
 
@@ -220,13 +222,34 @@ public class MyDbMain extends Activity {
         boolean on = ((Switch) v).isChecked();
         
         // Initialize schedulers
-        ScheduledExecutorService min_scheduler = Executors.newSingleThreadScheduledExecutor();
+		ScheduledExecutorService second_scheduler = Executors.newSingleThreadScheduledExecutor();
+		ScheduledExecutorService min_scheduler = Executors.newSingleThreadScheduledExecutor();
         ScheduledExecutorService hr_scheduler = Executors.newSingleThreadScheduledExecutor();
         ScheduledExecutorService day_scheduler = Executors.newSingleThreadScheduledExecutor();
         
         // If on
         if (on) {
-        	
+			// Schedule a regularly occurring task for each minute
+			second_scheduler.scheduleAtFixedRate (new Runnable() {
+				public void run() {
+
+					// Get the timestamp and dB data
+					Long tsLong = (System.currentTimeMillis()/1000) * 60;
+					String ts = tsLong.toString();
+					String value = String.format("%.2f", db_val);
+
+					// Log the data
+					String theLog = ts + ": " + value;
+					Log.e("sec scheduler: ", theLog);
+
+					// Make a JSON objects w/ the data
+					JSONObject json = dataToJson(ts, value, SECOND_TABLE);
+
+					// POST to the database
+					postToDb(json);
+
+				}
+			}, 0, UPDATE_MINUTE, TimeUnit.SECONDS);
         	// If Minute is checked
         	if (sw_min.isChecked()) {
         		
